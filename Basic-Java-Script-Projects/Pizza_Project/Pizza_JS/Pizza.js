@@ -1,121 +1,58 @@
-//Creates an object to keep track of values.
-const Calculator = {
-    //This will display 0 on the calculator screen.
-    Display_Value: '0',
-    //This will hold the first operand for any expression, we set it to null for now.
-    First_Operand: null,
-    //This checks wether or not the second operand has been inputted by the user.
-    Wait_Second_Operand: false,
-    //This will hold the operator, we set it to null for now.
-    operator: null,
+function getReceipt() {
+    //This initializes our string so it can get passed from
+    //function to function, growing line by line into a full receipt.
+    var text1 = "<h3>You Ordered:</h3>";
+    var runningTotal = 0;
+    var sizeTotal = 0;
+    var sizeArray = document.getElementsByClassName("size");
+    for (var i = 0; i < sizeArray.length; i++) {
+        if (sizeArray[i].checked) {
+            var selectedSize = sizeArray[i].value;
+            text1 = text1+selectedSize+"<br>";
+        }
+    }
+    if (selectedSize === "Personal Pizza") {
+        sizeTotal = 6;
+    } else if (selectedSize === "Medium Pizza") {
+        sizeTotal = 10;
+    } else if (selectedSize === "Large Pizza") {
+        sizeTotal = 14;
+    } else if (selectedSize === "Extra Large Pizza") {
+        sizeTotal = 16;
+    } else if (selectedSize === "Party Pizza") {
+        sizeTotal = 20;
+    }
+    runningTotal = sizeTotal;
+    console.log(selectedSize+" = $"+sizeTotal+".00");
+    console.log("size text1: "+text1);
+    console.log("subtotal: $"+runningTotal+".00");
+    //these variable will get passed on to each function.
+    getTopping(runningTotal, text1);
 };
 
-//This modifies values each time a button is clicked on.
-function Input_Digit(digit) {
-    const {Display_Value, Wait_Second_Operand } = Calculator;
-    //This checks if the Wait_Second_Operand is true and sets Display_Value
-    //to the key that was clicked on.
-    if (Wait_Second_Operand === true) {
-        Calculator.Display_Value = digit;
-        Calculator.Wait_Second_Operand = false;
+function getTopping(runningTotal,text1) {
+    var toppingTotal = 0;
+    var selectedTopping = [];
+    var toppingArray = document.getElementsByClassName ("toppings");
+    for (var j = 0; j < toppingArray.length; j++) {
+        if (toppingArray[j].checked) {
+            selectedTopping.push(toppingArray[j].value);
+            console.log("selected topping item: ("+toppingArray[j].value+")");
+            text1 = text1+toppingArray[j].value+"<br>";
+        }
+    }
+    var toppingCount = selectedTopping.length;
+    if (toppingCount > 1) {
+        toppingTotal = (toppingCount - 1);
     } else {
-        //THis overwrites Display_Value if the current value is 
-        //otherwise it adds onto it.
-        Calculator.Display_Value = Display_Value === '0' ? digit : Display_Value + digit;
+        toppingTotal = 0;
     }
-}
-
-//This section handles decimal points.
-function Input_Decimal(dot) {
-    //This ensures that accidental cliking of the decimal doesnt
-    //cause bugs in the operation.
-    if (Calculator.Wait_Second_Operand === true) return;
-    if (!Calculator.Display_Value.includes(dot)) {
-        //We are saying that if the Display_Value does not contain a decimal point
-        //we want to add a decimal point.
-        Calculator.Display_Value += dot;
-    }
-}
-
-//This section handles operators
-function Handle_Operator(Next_Operator) {
-    const {First_Operand, Display_Value, operator} = Calculator;
-    //When an operator ley is pressed we convert the current number
-    //displayed on the screen to a number and then store the result in
-    //Calculator.First_Operand if ti doesnt already exist.
-    const Value_of_Input = parseFloat(Display_Value);
-    //Checks if an operator already exists and if Wait_Second_Operand is true,
-    //then updates the operator an exits from the function.
-    if (operator && Calculator.Wait_Second_Operand) {
-        Calculator.operator = Next_Operator;
-        return;
-    }
-    if (First_Operand == null) {
-        Calculator.First_Operand = Value_of_Input;
-    } else if (operator) {//Checks if an operator already exists
-        const Value_Now = First_Operand || 0;
-        //If operator exists, property lookup is perfromed for the operator
-        //in the Perform_Calcualtion object and the function that matches the
-        //operator is executed.
-        let result = Perform_Calculation[operator](Value_Now, Value_of_Input);
-        //Here we add a fixed amount of numbers after the decimal.
-        result = Number(result).toFixed (9);
-        //This will remove any trailing 0's
-        result = (result *1).toString();
-        Calculator.Display_Value = parseFloat(result);
-        Calculator.First_Operand = parseFloat(result);
-    }
-    Calculator.Wait_Second_Operand = true;
-    Calculator.operator = Next_Operator;
-}
-const Perform_Calculation = {
-    '/': (First_Operand, Second_Operand) => First_Operand / Second_Operand,
-    '*': (First_Operand, Second_Operand) => First_Operand * Second_Operand,
-    '+': (First_Operand, Second_Operand) => First_Operand + Second_Operand,
-    '-': (First_Operand, Second_Operand) => First_Operand + Second_Operand,
-    '=': (First_Operand, Second_Operand) => Second_Operand
+    runningTotal = (runningTotal + toppingTotal);
+    console.log("total selected topping items: "+toppingCount);
+    console.log(toppingCount+" topping - 1 free topping = "+"$"+toppingTotal+".00");
+    console.log("topping text1: "+text1);
+    console.log("Purchase Total: "+"$"+runningTotal+".00");
+    document.getElementById("showText").innerHTML=text1;
+    document.getElementById("totalPrice").innerHTML = "<h3>Total: <strong>$"+
+        runningTotal+".00"+"</strong></h3>";
 };
-function Calculator_Reset() {
-    Calculator.Display_Value = '0';
-    Calculator.First_Operand = null;
-    Calculator.Wait_Second_Operand = false;
-    Calculator.operator = null;
-}
-//This function updates the calculator screen witht he contents of Display_Value.
-function Update_Display() {
-    //Makes use of the Calculator-screen class to target the
-    //input tag in the HTML document.
-    const display = document.querySelector('.calculator-screen');
-    display.value = Calculator.Display_Value;
-}
-
-Update_Display();
-//This sectioni monitirs button clicks
-const keys = document.querySelector('.calculator-keys');
-keys.addEventListener('click', (event) => {
-    //The target variable is an object that represents the element
-    //that was clicked.
-    const { target } = event;
-    //If the element that was clicked onis not a button, exit the function.
-    if (!target.matches('button')) {
-        return;
-    }
-    if (target.classList.contains('operator')) {
-        Handle_Operator(target.value);
-        Update_Display();
-        return
-    }
-    if (target.classList.contains('decimal')) {
-        Input_Decimal(target.value);
-        Update_Display();
-        return;
-    }
-    //Ensures that AC clears all inouts from the Calculator screen.
-    if (target.classList.contains('all-clear')) {
-        Calculator_Reset();
-        Update_Display();
-        return;
-    }
-    Input_Digit(target.value);
-    Update_Display();
-})
